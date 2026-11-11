@@ -1,23 +1,25 @@
 /* ASCII model tiles.
    Markup: <div class="t ascii" data-model="assets/models/fcil.bin" role="img" aria-label="..."></div>
-   Optional: data-font, data-size, data-weight, data-text-weight, data-phrase, data-start, data-tilt,
+   Optional: data-font, data-size, data-weight, data-phrase, data-start, data-tilt,
    data-rock (degrees: sway back and forth around data-start instead of spinning, for flat things),
    data-exposure (brightens the lighting) and data-floor (lightest glyph a solid surface may use,
    1 to 3; lower lets white things like paper read as light).
    2D instead of a mesh: data-art="id" names an element whose text is the drawing; everything but
    the outline (| _ / \) types itself out the first time it scrolls into view.
-   The model spins slowly. Hovering (or focusing) the enclosing link sends every glyph flying,
-   scrambling as it goes, into big ASCII letters that spell the phrase; leaving sends them back.
+   The model spins slowly. Hovering (or focusing) the enclosing link turns its glyphs into green
+   letters repeating the phrase (default "explore"), in a scrambling wave that spreads from where
+   the pointer came in. The text is fixed to the grid, so the still-spinning model acts as a window
+   onto it; glyph opacity keeps the shading. Leaving turns them back.
    Mesh format is written by _notes/tools/stl2bin.py. */
 (() => {
   const RAMP = ' .:-=+*#';
   const SCRAMBLE = '/\\|_-=+*<>[]{}?!#%&$01';
   const FRAME = '|_/\\';   // 2D drawings: outline glyphs, shown at once; everything else types out
   const INK = '#111', ACC = '#0A6847';
-  const MORPH = 1.0;      // seconds for the whole morph
-  const STAGGER = 0.45;   // share of the morph spent staggering launches
+  const MORPH = 0.8;      // seconds for the whole morph
+  const STAGGER = 0.6;    // share of the morph the wave takes to cross the tile
+  const SHIFT = 3;        // each row of phrase text starts this many columns further along
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
   const meshes = new Map();
 
   function loadMesh(url) {
@@ -64,7 +66,6 @@
       this.font = d.font || 'JetBrains Mono';
       this.size = +d.size || 9;              // font size, CSS px
       this.weight = d.weight || 400;
-      this.textWeight = d.textWeight || 800; // weight of the big letters
       this.squeeze = +d.squeeze || 0.86;     // cell width / glyph advance (tight, like the reference)
       this.lead = +d.lead || 1.0;            // cell height / font size
       this.tilt = (d.tilt != null ? +d.tilt : 8) * Math.PI / 180;
@@ -85,11 +86,10 @@
         this.artH = this.art.length;
         this.typed = reduce ? Infinity : 0;   // letters typed so far
       }
-      this.mul = 1;
-      this.phrase = (d.phrase || 'view').toUpperCase();
+      this.phrase = (d.phrase || 'explore').toLowerCase() + ' ';   // repeats with a space between
       this.M = 0;            // morph progress, 0 = model, 1 = letters
       this.goal = 0;
-      this.parts = null;     // flying glyphs while morphed
+      this.entry = null;     // where the pointer crossed into the tile; the wave starts there
       this.visible = true;
       this.canvas = document.createElement('canvas');
       this.canvas.setAttribute('aria-hidden', 'true');
@@ -109,10 +109,7 @@
         [this.ax, this.ay] = this.axis === 'base' ? [0, 0] : this.mesh.mid;
         this.r = sweep(this.mesh, this.ax, this.ay);
       }
-      await Promise.all([
-        document.fonts.load(`${this.weight} ${this.size}px "${this.font}"`),
-        document.fonts.load(`${this.textWeight} 40px "${this.font}"`),
-      ]).catch(() => {});
+      await document.fonts.load(`${this.weight} ${this.size}px "${this.font}"`).catch(() => {});
       this.layout();
       new ResizeObserver(() => this.layout()).observe(this.el);
       new IntersectionObserver(es => { this.visible = es[0].isIntersecting; }).observe(this.el);
@@ -160,7 +157,7 @@
       }
 
       // glyph atlas: one slot per character, two colours
-      const chars = [...new Set(RAMP + SCRAMBLE + '_' + (this.art ? this.art.join('') : ''))];
+      const chars = [...new Set(RAMP + SCRAMBLE + '_' + this.phrase + (this.art ? this.art.join('') : ''))];
       this.slot = new Map(chars.map((c, i) => [c, i]));
       this.sw = Math.ceil(adv * dpr) + 2;
       this.sh = Math.ceil(this.size * 1.5 * dpr);
@@ -186,8 +183,7 @@
         this.cy = h / 2 + ((top + bot) / 2) * this.k;
       }
 
-      this.buildText();
-      if (this.parts) this.snapshot();
+      this.jit = Float32Array.from({ length: this.cols * this.rows }, Math.random);   // wave jitter per cell
       this.draw(performance.now());
     }
 
@@ -229,102 +225,15 @@
       return out;
     }
 
-    // big letters: draw the phrase onto a sample grid, then pick a glyph per filled cell
-    buildText() {
-      const { cols, rows, cw, ch } = this;
-      const gw = cols * cw, S = 4;
-      const off = document.createElement('canvas');
-      off.width = cols * S; off.height = rows * S;
-      const g = off.getContext('2d', { willReadFrequently: true });
-      g.scale(S / cw, S / ch);                      // draw in CSS px
-      const lines = this.phrase.includes('|') ? this.phrase.split('|') : this.phrase.split(/\s+/);
-      g.font = `${this.textWeight} 100px "${this.font}"`;
-      const cap = (g.measureText('H').actualBoundingBoxAscent || 73) / 100;
-      const wide = Math.max(...lines.map(l => g.measureText(l).width)) / 100;
-      const gap = 0.3;                              // line gap, in cap heights
-      let capRows = Math.floor(0.7 * rows / (lines.length + (lines.length - 1) * gap));
-      let fs = 0, q = 1;
-      for (; capRows >= 3; capRows--) {
-        fs = capRows * ch / cap;
-        q = Math.min(1, 0.92 * gw / (wide * fs));   // squeeze letters sideways to fit
-        if (q >= 0.6) break;
-      }
-      g.font = `${this.textWeight} ${fs}px "${this.font}"`;
-      const gapRows = Math.max(1, Math.round(capRows * gap));
-      const block = lines.length * capRows + (lines.length - 1) * gapRows;
-      const top = Math.round((rows - block) / 2);
-      const x0 = Math.round((gw - wide * fs * q) / 2 / cw) * cw;
-      lines.forEach((l, i) => {
-        g.save();
-        g.translate(x0, (top + capRows + i * (capRows + gapRows)) * ch);
-        g.scale(q, 1); g.fillText(l, 0, 0);
-        g.restore();
-      });
-      const img = g.getImageData(0, 0, off.width, off.height).data;
-      const fill = new Float32Array(cols * rows);
-      for (let r = 0; r < rows; r++)
-        for (let c = 0; c < cols; c++) {
-          let s = 0;
-          for (let j = 0; j < S; j++)
-            for (let k = 0; k < S; k++) s += img[((r * S + j) * off.width + c * S + k) * 4 + 3];
-          fill[r * cols + c] = s / (S * S * 255);
-        }
-      const T = [];
-      for (let r = 0; r < rows; r++)
-        for (let c = 0; c < cols; c++) {
-          // solid core, lighter glyph where the cell is only partly inside a letter
-          const f = fill[r * cols + c];
-          if (f >= 0.36) T.push({ c, r, g: f > 0.72 ? '#' : f > 0.52 ? '*' : '+', col: 1, a: 1 });
-        }
-      this.targets = T;
-    }
-
     hover(on, e) {
       if (on === this.goal) return;
       this.goal = on;
-      if (!on || !this.cols || this.parts) return;   // reversing, or already morphing
-      const r0 = this.el.getBoundingClientRect();
-      this.entry = e && e.clientX != null ? [e.clientX - r0.left, e.clientY - r0.top] : [r0.width / 2, r0.height / 2];
-      this.snapshot();
-    }
-
-    // freeze the current model frame and pair each of its glyphs with a letter cell
-    snapshot() {
-      const { cols, rows, cw, ch } = this;
-      let S = [];
-      if (this.art) {
-        this.typed = Infinity;   // coming back from the letters, the page is fully written
-        S = this.artCells();
-      } else {
-        this.raster();
-        this.resolve();
-        for (let r = 0, i = 0; r < rows; r++)
-          for (let c = 0; c < cols; c++, i++) if (this.level[i]) S.push({ c, r, g: RAMP[this.level[i]] });
+      if (on && this.art) this.typed = Infinity;   // coming back from the letters, the page is fully written
+      // a fresh wave starts where the pointer crossed the edge; mid-wave reversals keep their origin
+      if (this.M === 0 || this.M === 1) {
+        const r0 = this.el.getBoundingClientRect();
+        this.entry = e && e.clientX != null ? [e.clientX - r0.left, e.clientY - r0.top] : null;
       }
-      if (!S.length) S = [{ c: cols / 2, r: rows / 2, g: '.' }];
-      const T = this.targets, n = Math.max(S.length, T.length);
-      const [ex, ey] = this.entry || [cols * cw / 2, rows * ch / 2];
-      const far = Math.hypot(cols * cw, rows * ch);
-      const parts = new Array(n);
-      for (let k = 0; k < n; k++) {
-        const si = Math.floor(k * S.length / n), ti = Math.floor(k * T.length / n);
-        const s = S[si], t = T[ti];
-        // launch order ripples out from where the pointer came in
-        const near = Math.hypot(this.ox + (s.c + 0.5) * cw - ex, this.oy + (s.r + 0.5) * ch - ey) / far;
-        // curve each flight a little to one side
-        const dx = (t.c - s.c) * cw, dy = (t.r - s.r) * ch, len = Math.hypot(dx, dy) || 1;
-        const bend = (Math.random() * 2 - 1) * Math.min(70, len * 0.35);
-        parts[k] = {
-          sc: s.c, sr: s.r, sg: s.g, tc: t.c, tr: t.r, tg: t.g, tcol: t.col, ta: t.a,
-          bx: (-dy / len) * bend / cw, by: (dx / len) * bend / ch,
-          d: Math.min(1, near * 1.3 * 0.75 + Math.random() * 0.25),
-          // when the counts differ, extra glyphs fade in at the start or out on landing
-          fin: k > 0 && Math.floor((k - 1) * S.length / n) === si,
-          fout: k > 0 && Math.floor((k - 1) * T.length / n) === ti,
-        };
-      }
-      this.parts = parts;
-      this.mul = 0;
     }
 
     raster() {
@@ -403,60 +312,56 @@
         Math.round((this.oy + (y + 0.5) * this.ch) * dpr - sh / 2), sw, sh);
     }
 
+    // glyphs of the current frame: cell, ramp glyph and shading (0 light to 1 dark)
+    cells() {
+      if (this.art) return this.artCells().map(p => ({ c: p.c, r: p.r, g: p.g, v: 1 }));
+      this.raster();
+      this.resolve();
+      const out = [], L = RAMP.length - 1;
+      for (let r = 0, i = 0; r < this.rows; r++)
+        for (let c = 0; c < this.cols; c++, i++)
+          if (this.level[i]) out.push({ c, r, g: RAMP[this.level[i]], v: this.level[i] / L });
+      return out;
+    }
+
     draw(now) {
       if (!this.cols) return;
-      const { ctx, cols, rows } = this;
+      const { ctx, cols, rows, cw, ch, M, phrase: P } = this;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      if (!this.parts && this.art) {
-        for (const p of this.artCells()) this.glyph(p.g, 0, 1, p.c, p.r);
-        ctx.globalAlpha = 1;
-        return;
-      }
-      if (!this.parts) {
-        this.raster();
-        this.resolve();
-        for (let r = 0, i = 0; r < rows; r++)
-          for (let c = 0; c < cols; c++, i++) if (this.level[i]) this.glyph(RAMP[this.level[i]], 0, 1, c, r);
-        ctx.globalAlpha = 1;
-        return;
-      }
-      const M = this.M;
-      for (const p of this.parts) {
-        const t = Math.max(0, Math.min(1, (M - p.d * STAGGER) / (1 - STAGGER)));
-        const e = ease(t), arc = Math.sin(Math.PI * e);
-        let alpha = (p.fin ? e : 1) * (p.fout ? 1 - e : 1);
-        if (alpha < 0.02) continue;
-        let g, col;
-        if (t === 0) { g = p.sg; col = 0; }
-        else if (t === 1) { g = p.tg; col = p.tcol; alpha *= p.ta; }
-        else {
-          g = SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0];
-          col = e > 0.5 ? p.tcol : 0;
-          alpha *= 1 + (p.ta - 1) * e;
+      const [ex, ey] = this.entry || [this.ox + cols * cw / 2, this.oy + rows * ch / 2];
+      const far = Math.hypot(cols * cw, rows * ch), n = P.length;
+      for (const p of this.cells()) {
+        // this cell's own progress: the wave reaches it later the farther it is from the entry point
+        let t = M;
+        if (M > 0 && M < 1) {
+          const near = Math.hypot(this.ox + (p.c + 0.5) * cw - ex, this.oy + (p.r + 0.5) * ch - ey) / far;
+          const d = Math.min(1, near * 1.3 * 0.75 + (this.jit[p.r * cols + p.c] || 0) * 0.25);
+          t = Math.max(0, Math.min(1, (M - d * STAGGER) / (1 - STAGGER)));
         }
-        this.glyph(g, col, alpha, p.sc + (p.tc - p.sc) * e + p.bx * arc, p.sr + (p.tr - p.sr) * e + p.by * arc);
+        if (t === 0) this.glyph(p.g, 0, 1, p.c, p.r);
+        else if (t === 1) {
+          const g = P[(((p.c + p.r * SHIFT) % n) + n) % n];
+          if (g === ' ') this.glyph('.', 1, 0.35, p.c, p.r);   // keeps the silhouette whole between words
+          else this.glyph(g, 1, 0.25 + 0.75 * p.v, p.c, p.r);
+        } else this.glyph(SCRAMBLE[(Math.random() * SCRAMBLE.length) | 0], t > 0.5 ? 1 : 0, 1, p.c, p.r);
       }
       ctx.globalAlpha = 1;
     }
 
-    // advance morph and spin; true while something is moving fast enough to want 60 fps
+    // advance morph and spin; true while the morph is running, which wants 60 fps
     step(dt) {
-      if (this.parts) {
-        this.M = reduce ? this.goal : Math.max(0, Math.min(1, this.M + (this.goal ? dt : -dt) / MORPH));
-        if (this.M === 0 && !this.goal) this.parts = null;   // back to the live model
-        return this.M > 0 && this.M < 1;
-      }
+      const morphing = this.M !== this.goal;
+      if (morphing) this.M = reduce ? this.goal : Math.max(0, Math.min(1, this.M + (this.goal ? dt : -dt) / MORPH));
       if (this.art) {
         if (this.visible && this.typed < this.letters) this.typed += dt * 70;   // letters per second
-        return false;
+        return morphing;
       }
-      this.mul += (1 - this.mul) * Math.min(1, dt * 2.5);
       if (this.rock) {
-        this.phase += this.speed * this.mul * dt;
+        this.phase += this.speed * dt;
         this.angle = this.base + this.rock * Math.sin(this.phase);
-      } else this.angle += this.speed * this.mul * dt;
-      return false;
+      } else this.angle += this.speed * dt;
+      return morphing;
     }
   }
 
