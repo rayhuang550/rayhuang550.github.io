@@ -1,12 +1,18 @@
 /* ASCII model tiles.
    Markup: <div class="t ascii" data-model="assets/models/fcil.bin" role="img" aria-label="..."></div>
-   Optional: data-font, data-size, data-weight, data-text-weight, data-phrase, data-start, data-tilt.
+   Optional: data-font, data-size, data-weight, data-text-weight, data-phrase, data-start, data-tilt,
+   data-rock (degrees: sway back and forth around data-start instead of spinning, for flat things),
+   data-exposure (brightens the lighting) and data-floor (lightest glyph a solid surface may use,
+   1 to 3; lower lets white things like paper read as light).
+   2D instead of a mesh: data-art="id" names an element whose text is the drawing; everything but
+   the outline (| _ / \) types itself out the first time it scrolls into view.
    The model spins slowly. Hovering (or focusing) the enclosing link sends every glyph flying,
    scrambling as it goes, into big ASCII letters that spell the phrase; leaving sends them back.
    Mesh format is written by _notes/tools/stl2bin.py. */
 (() => {
   const RAMP = ' .:-=+*#';
   const SCRAMBLE = '/\\|_-=+*<>[]{}?!#%&$01';
+  const FRAME = '|_/\\';   // 2D drawings: outline glyphs, shown at once; everything else types out
   const INK = '#111', ACC = '#0A6847';
   const MORPH = 1.0;      // seconds for the whole morph
   const STAGGER = 0.45;   // share of the morph spent staggering launches
@@ -63,8 +69,22 @@
       this.lead = +d.lead || 1.0;            // cell height / font size
       this.tilt = (d.tilt != null ? +d.tilt : 8) * Math.PI / 180;
       this.axis = d.axis || 'center';        // 'center' of the footprint box, or 'base' (x=y=0)
-      this.angle = (+d.start || 0) * Math.PI / 180;
-      this.speed = reduce ? 0 : (+d.speed || 0.475);  // rad/s, about 13 s a turn
+      this.angle = this.base = (+d.start || 0) * Math.PI / 180;
+      this.rock = (+d.rock || 0) * Math.PI / 180;
+      this.exposure = +d.exposure || 1;
+      this.floor = +d.floor || 3;
+      this.phase = 0;
+      this.speed = reduce ? 0 : (+d.speed || (this.rock ? 0.6 : 0.475));  // rad/s, about 13 s a turn
+      if (d.art) {
+        const lines = document.getElementById(d.art).textContent.replace(/\t/g, '  ').split('\n');
+        while (lines.length && !lines[0].trim()) lines.shift();
+        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+        const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+        this.art = lines.map(l => l.slice(indent).replace(/\s+$/, ''));
+        this.artW = Math.max(...this.art.map(l => l.length));
+        this.artH = this.art.length;
+        this.typed = reduce ? Infinity : 0;   // letters typed so far
+      }
       this.mul = 1;
       this.phrase = (d.phrase || 'view').toUpperCase();
       this.M = 0;            // morph progress, 0 = model, 1 = letters
@@ -84,9 +104,11 @@
     }
 
     async init() {
-      this.mesh = await loadMesh(this.el.dataset.model);
-      [this.ax, this.ay] = this.axis === 'base' ? [0, 0] : this.mesh.mid;
-      this.r = sweep(this.mesh, this.ax, this.ay);
+      if (!this.art) {
+        this.mesh = await loadMesh(this.el.dataset.model);
+        [this.ax, this.ay] = this.axis === 'base' ? [0, 0] : this.mesh.mid;
+        this.r = sweep(this.mesh, this.ax, this.ay);
+      }
       await Promise.all([
         document.fonts.load(`${this.weight} ${this.size}px "${this.font}"`),
         document.fonts.load(`${this.textWeight} 40px "${this.font}"`),
@@ -101,12 +123,19 @@
 
     layout() {
       const w = this.el.clientWidth, h = this.el.clientHeight;
-      if (!w || !h || !this.mesh) return;
+      if (!w || !h || !(this.mesh || this.art)) return;
       const dpr = Math.min(devicePixelRatio || 1, 2);
       this.dpr = dpr;
       this.canvas.width = Math.round(w * dpr);
       this.canvas.height = Math.round(h * dpr);
       const ctx = this.ctx;
+      if (this.art) {
+        // pick the font size that fits the drawing, with a cell of margin
+        ctx.font = `${this.weight} 100px "${this.font}"`;
+        const a = ctx.measureText('0').width / 100;
+        this.size = Math.min(+this.el.dataset.size || 13,
+          w / ((this.artW + 2) * a * this.squeeze), h / ((this.artH + 2) * this.lead));
+      }
       ctx.font = `${this.weight} ${this.size}px "${this.font}"`;
       const adv = ctx.measureText('0').width;
       this.cw = adv * this.squeeze;
@@ -118,15 +147,20 @@
       this.sx = 2;
       this.sy = Math.max(2, Math.round(2 * this.ch / this.cw));
       this.W = this.cols * this.sx; this.H = this.rows * this.sy;
-      this.depth = new Float32Array(this.W * this.H);
-      this.shade = new Float32Array(this.W * this.H);
-      this.level = new Uint8Array(this.cols * this.rows);
-      const nv = this.mesh.nv;
-      this.vx = new Float32Array(nv); this.vy = new Float32Array(nv);
-      this.vz = new Float32Array(nv); this.vd = new Float32Array(nv);
+      if (this.mesh) {
+        this.depth = new Float32Array(this.W * this.H);
+        this.shade = new Float32Array(this.W * this.H);
+        this.level = new Uint8Array(this.cols * this.rows);
+        const nv = this.mesh.nv;
+        this.vx = new Float32Array(nv); this.vy = new Float32Array(nv);
+        this.vz = new Float32Array(nv); this.vd = new Float32Array(nv);
+      } else {
+        this.ac = Math.floor((this.cols - this.artW) / 2);
+        this.ar = Math.floor((this.rows - this.artH) / 2);
+      }
 
       // glyph atlas: one slot per character, two colours
-      const chars = [...new Set(RAMP + SCRAMBLE)];
+      const chars = [...new Set(RAMP + SCRAMBLE + '_' + (this.art ? this.art.join('') : ''))];
       this.slot = new Map(chars.map((c, i) => [c, i]));
       this.sw = Math.ceil(adv * dpr) + 2;
       this.sh = Math.ceil(this.size * 1.5 * dpr);
@@ -141,17 +175,58 @@
       });
       this.atlas = atlas;
 
-      // fit the full spin sweep
-      const m = this.mesh, ct = Math.cos(this.tilt), st = Math.sin(this.tilt);
-      const top = m.zmax * ct + this.r * st, bot = -this.r * st;
-      const kx = (w * 0.94) / (2 * this.r), ky = (h * 0.94) / (top - bot);
-      this.k = Math.min(kx, ky);
-      this.cx = w / 2;
-      this.cy = h / 2 + ((top + bot) / 2) * this.k;
+      if (this.mesh && this.rock) this.fitRock(w, h);
+      else if (this.mesh) {
+        // fit the full spin sweep
+        const m = this.mesh, ct = Math.cos(this.tilt), st = Math.sin(this.tilt);
+        const top = m.zmax * ct + this.r * st, bot = -this.r * st;
+        const kx = (w * 0.94) / (2 * this.r), ky = (h * 0.94) / (top - bot);
+        this.k = Math.min(kx, ky);
+        this.cx = w / 2;
+        this.cy = h / 2 + ((top + bot) / 2) * this.k;
+      }
 
       this.buildText();
       if (this.parts) this.snapshot();
       this.draw(performance.now());
+    }
+
+    // swaying models: fit the screen box the model covers over the whole sway
+    fitRock(w, h) {
+      const { pos, nv } = this.mesh, ct = Math.cos(this.tilt), st = Math.sin(this.tilt);
+      let x0 = 1e9, x1 = -1e9, u0 = 1e9, u1 = -1e9;
+      for (let s = 0; s <= 12; s++) {
+        const a = this.base + this.rock * Math.sin((s / 12) * 2 * Math.PI - Math.PI / 2);
+        const ca = Math.cos(a), sa = Math.sin(a);
+        for (let i = 0; i < nv; i++) {
+          const x = pos[3 * i] - this.ax, y = pos[3 * i + 1] - this.ay, z = pos[3 * i + 2];
+          const xr = x * ca - y * sa, up = z * ct + (x * sa + y * ca) * st;
+          if (xr < x0) x0 = xr; if (xr > x1) x1 = xr;
+          if (up < u0) u0 = up; if (up > u1) u1 = up;
+        }
+      }
+      this.k = Math.min((w * 0.94) / (x1 - x0), (h * 0.94) / (u1 - u0));
+      this.cx = w / 2 - ((x0 + x1) / 2) * this.k;
+      this.cy = h / 2 + ((u0 + u1) / 2) * this.k;
+    }
+
+    // 2D drawing: glyphs of the current frame, typed letters only
+    artCells() {
+      const out = [];
+      let n = 0, last = null;
+      this.art.forEach((line, r) => {
+        for (let c = 0; c < line.length; c++) {
+          const g = line[c];
+          if (g === ' ') continue;
+          if (!FRAME.includes(g)) { if (n++ >= this.typed) continue; last = [c, r]; }
+          out.push({ c: this.ac + c, r: this.ar + r, g });
+        }
+      });
+      this.letters = n;
+      // cursor while typing
+      if (this.typed < n && last && (performance.now() / 250 | 0) % 2)
+        out.push({ c: this.ac + last[0] + 1, r: this.ar + last[1], g: '_' });
+      return out;
     }
 
     // big letters: draw the phrase onto a sample grid, then pick a glyph per filled cell
@@ -216,11 +291,16 @@
     // freeze the current model frame and pair each of its glyphs with a letter cell
     snapshot() {
       const { cols, rows, cw, ch } = this;
-      this.raster();
-      this.resolve();
       let S = [];
-      for (let r = 0, i = 0; r < rows; r++)
-        for (let c = 0; c < cols; c++, i++) if (this.level[i]) S.push({ c, r, g: RAMP[this.level[i]] });
+      if (this.art) {
+        this.typed = Infinity;   // coming back from the letters, the page is fully written
+        S = this.artCells();
+      } else {
+        this.raster();
+        this.resolve();
+        for (let r = 0, i = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++, i++) if (this.level[i]) S.push({ c, r, g: RAMP[this.level[i]] });
+      }
       if (!S.length) S = [{ c: cols / 2, r: rows / 2, g: '.' }];
       const T = this.targets, n = Math.max(S.length, T.length);
       const [ex, ey] = this.entry || [cols * cw / 2, rows * ch / 2];
@@ -280,7 +360,7 @@
         if (nd > 0) { nx = -nx; nu = -nu; nd = -nd; }
         const lam = Math.max(0, (nx * lx + nu * lu + nd * ld) / nl);
         const rim = Math.pow(1 - Math.abs(nd / nl), 3);
-        const lit = Math.min(1, 0.18 + 0.82 * lam + 0.25 * rim) * alb[t];
+        const lit = Math.min(1, 0.18 + 0.82 * lam + 0.25 * rim) * alb[t] * this.exposure;
         const inv = 1 / area, da = vd[a], db = vd[b], dc = vd[c];
         for (let y = y0; y <= y1; y++) {
           const py = y + 0.5;
@@ -311,7 +391,7 @@
           }
           if (cov < 2) { level[i] = 0; continue; }
           const f = cov / n, dark = (0.3 + 0.7 * (1 - sum / cov)) * Math.sqrt(f);
-          level[i] = Math.max(f > 0.5 ? 3 : 1, Math.min(L, Math.round(dark * L)));
+          level[i] = Math.max(f > 0.5 ? this.floor : 1, Math.min(L, Math.round(dark * L)));
         }
     }
 
@@ -328,6 +408,11 @@
       const { ctx, cols, rows } = this;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      if (!this.parts && this.art) {
+        for (const p of this.artCells()) this.glyph(p.g, 0, 1, p.c, p.r);
+        ctx.globalAlpha = 1;
+        return;
+      }
       if (!this.parts) {
         this.raster();
         this.resolve();
@@ -362,8 +447,15 @@
         if (this.M === 0 && !this.goal) this.parts = null;   // back to the live model
         return this.M > 0 && this.M < 1;
       }
+      if (this.art) {
+        if (this.visible && this.typed < this.letters) this.typed += dt * 70;   // letters per second
+        return false;
+      }
       this.mul += (1 - this.mul) * Math.min(1, dt * 2.5);
-      this.angle += this.speed * this.mul * dt;
+      if (this.rock) {
+        this.phase += this.speed * this.mul * dt;
+        this.angle = this.base + this.rock * Math.sin(this.phase);
+      } else this.angle += this.speed * this.mul * dt;
       return false;
     }
   }
@@ -381,7 +473,7 @@
     }
   }
 
-  function start() { document.querySelectorAll('.ascii[data-model]').forEach(el => new Tile(el).init()); }
+  function start() { document.querySelectorAll('.ascii[data-model], .ascii[data-art]').forEach(el => new Tile(el).init()); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();

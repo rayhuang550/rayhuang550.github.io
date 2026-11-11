@@ -25,10 +25,10 @@ img{display:block;max-width:100%}
 .bar{position:sticky;top:0;z-index:20;display:flex;justify-content:flex-end;padding:0 10px;pointer-events:none}
 .bar ul{display:flex;justify-content:flex-end;align-items:flex-start;flex-wrap:wrap;gap:3px}
 .bar a{display:block;padding:13px 12px 7px;pointer-events:auto;white-space:nowrap;
-  background:rgba(226,226,226,.6);-webkit-backdrop-filter:blur(14px) saturate(1.6);backdrop-filter:blur(14px) saturate(1.6);
+  background:rgba(226,226,226,.35);-webkit-backdrop-filter:blur(8px) saturate(1.5);backdrop-filter:blur(8px) saturate(1.5);
   transition:padding .2s ease,margin .2s ease,background-color .2s ease,color .2s ease}
 .bar a i{font:400 10px/1 "JetBrains Mono",monospace;font-style:normal;color:var(--mute);margin-right:6px;vertical-align:1px;transition:color .2s ease}
-.bar a[aria-current]{background-color:var(--cream);box-shadow:inset 0 -2px 0 var(--acc)}
+.bar a[aria-current]{background-color:rgba(251,250,243,.6);box-shadow:inset 0 -2px 0 var(--acc)}
 /* project pages: "Next project" tab, set apart to the left of Home */
 .bar li:has(.next){margin-right:9px}
 .bar a.next{background-color:var(--acc);color:#fff}
@@ -36,9 +36,9 @@ img{display:block;max-width:100%}
 .bar .arr{display:inline-block;margin-left:7px;transition:transform .2s ease}
 @media(hover:hover){
   /* the tab drops 7px; the matching negative margin keeps the bar's height, so nothing below moves */
-  .bar a:hover{padding-bottom:14px;margin-bottom:-7px;background-color:rgba(180,180,180,.85)}
+  .bar a:hover{padding-bottom:14px;margin-bottom:-7px;background-color:rgba(170,170,170,.55)}
   .bar a:hover i{color:#333}
-  .bar a[aria-current]:hover{background-color:var(--cream)}
+  .bar a[aria-current]:hover{background-color:rgba(251,250,243,.6)}
   .bar a.next:hover{background-color:var(--deep)}
   .bar a.next:hover i{color:rgba(255,255,255,.72)}
   .bar a.next:hover .arr{transform:translateX(4px)}
@@ -54,12 +54,42 @@ img{display:block;max-width:100%}
 .comp>*{position:absolute;width:54%;aspect-ratio:3/2;object-fit:cover;box-shadow:0 18px 44px rgba(0,0,0,.11)}
 .comp>:first-child{left:5%;top:0}
 .comp>:last-child{right:0;bottom:0;background:#fff}
-.skills{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-top:34px;max-width:640px}
-.skills p{font-size:13px;margin-bottom:6px}
+/* home: swaying ASCII clipboard under the name, links to the resume (drawn by assets/ascii3d.js);
+   the bottom 22px holds its "> view_" cue */
+.resume-art{display:block;position:relative;margin:34px auto 0;width:clamp(240px,24vw,440px);aspect-ratio:240/322}
+.resume-art .ascii{position:absolute;inset:0 0 22px}
+.resume-art canvas{position:absolute;inset:0;width:100%;height:100%}
+/* home: name on top, then the clipboard (still centred in the left half) with the about card a fixed gap to its right,
+   vertically centred on it */
+.head.home{display:block}
+.head.home .intro{display:flex;align-items:center;gap:clamp(40px,5vw,96px);margin-top:34px}
+.head.home .resume-art{flex:none;margin:0 0 0 calc((50% - clamp(240px,24vw,440px))/2)}
+.head.home .meta{flex:1;max-width:600px;padding-left:0}
+.head.home .meta :is(p,.kv,.xp){max-width:none}
+/* the whole card links to About through the "> about_" cue, which stretches over it; arrow top right, both green on hover */
+.about-card{position:relative}
+.about-card::after{content:"\2197";position:absolute;top:10px;right:0;pointer-events:none;
+  font:400 18px/1 "JetBrains Mono",monospace;color:#8A8A8A;transition:transform .25s ease,color .25s ease}
+.about-card .cue{display:inline-block;margin-top:14px;font:400 11px/1 "JetBrains Mono",monospace;color:#8A8A8A;transition:color .25s ease}
+.about-card .cue::before{content:"";position:absolute;inset:0;z-index:1}
+.about-card .cue::after{content:"_";animation:blink 1.1s steps(1) infinite}
+.about-card .cue:focus-visible{outline:none}
+.about-card:has(.cue:focus-visible){outline:2px solid var(--acc);outline-offset:6px}
+.about-card:hover::after,.about-card:has(.cue:focus-visible)::after{color:var(--acc);transform:translate(3px,-3px)}
+.about-card:hover .cue,.about-card .cue:focus-visible{color:var(--acc)}
+/* section labels and their rules turn green with the cues; body text stays black */
+.about-card .lab{transition:color .25s ease,border-color .25s ease}
+.about-card:hover .lab,.about-card:has(.cue:focus-visible) .lab{color:var(--acc);border-bottom-color:var(--acc)}
 .portrait{margin-top:34px;width:min(360px,100%);aspect-ratio:4/5;object-fit:cover}
 .meta{padding-left:22%}
 .meta p{font-size:13px;max-width:62ch;margin-bottom:6px}
 .lab{font-size:12px;color:var(--mute);border-bottom:1px solid var(--rule);padding:14px 0 7px;margin-bottom:10px}
+/* home: skills (grey group label, then the list) and one-line experience (role left, dates right) */
+.kv{display:grid;grid-template-columns:7.5em 1fr;column-gap:12px;row-gap:4px;font-size:13px;max-width:62ch;margin-bottom:6px}
+.kv dt{color:var(--mute)}
+.xp{font-size:13px;max-width:62ch;margin-bottom:6px}
+.xp li{display:flex;justify-content:space-between;gap:16px;padding:2px 0}
+.xp li span+span{color:var(--mute);white-space:nowrap}
 
 /* ---------- placeholders and tiles ---------- */
 .ph{display:grid;place-items:center;text-align:center;padding:14px;background:var(--tile);color:#7A7A7A;font-size:12px}
@@ -69,6 +99,24 @@ img{display:block;max-width:100%}
 /* spinning ASCII models, drawn by assets/ascii3d.js */
 .tiles .t.ascii{position:relative;padding:0;overflow:hidden}
 .tiles .t.ascii canvas{position:absolute;inset:0;width:100%;height:100%}
+/* click cues on every ASCII picture: an arrow top right and a blinking "> view_" bottom left, green on hover */
+.tiles a:has(.ascii){position:relative}
+.tiles a:has(.ascii)::after,.resume-art::after{content:"\2197";position:absolute;z-index:1;top:10px;right:12px;pointer-events:none;
+  font:400 18px/1 "JetBrains Mono",monospace;color:#8A8A8A;transition:transform .25s ease,color .25s ease}
+.tiles .t.ascii::before,.tiles .t.ascii::after,.resume-art .ascii::before,.resume-art .ascii::after{position:absolute;z-index:1;bottom:10px;
+  pointer-events:none;font:400 11px/1 "JetBrains Mono",monospace;color:#8A8A8A;transition:color .25s ease}
+.tiles .t.ascii::before,.resume-art .ascii::before{content:"> view";left:12px}
+.tiles .t.ascii::after,.resume-art .ascii::after{content:"_";left:calc(12px + 6ch);animation:blink 1.1s steps(1) infinite}
+/* the clipboard has no tile edge, so its cues sit on the box edges, clear of the drawing */
+.resume-art::after{top:0;right:0}
+.resume-art .ascii::before{content:"> resume";left:0}
+.resume-art .ascii::after{left:8ch}
+.resume-art .ascii::before,.resume-art .ascii::after{bottom:-18px}
+.tiles a:hover::after,.tiles a:focus-visible::after,.resume-art:hover::after,.resume-art:focus-visible::after{color:var(--acc);transform:translate(3px,-3px)}
+.tiles a:hover .t.ascii::before,.tiles a:hover .t.ascii::after,.tiles a:focus-visible .t.ascii::before,.tiles a:focus-visible .t.ascii::after,
+.resume-art:hover .ascii::before,.resume-art:hover .ascii::after,.resume-art:focus-visible .ascii::before,.resume-art:focus-visible .ascii::after{color:var(--acc)}
+@keyframes blink{50%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.tiles .t.ascii::after,.resume-art .ascii::after,.about-card .cue::after{animation:none}}
 .tiles .t.deep{background:var(--deep);color:#fff}
 .tiles .t.deep svg{width:46%;height:auto}
 .tiles .t.cream{background:var(--cream);color:#000;font-size:clamp(22px,2.6vw,34px);line-height:1.05;letter-spacing:-.02em}
@@ -78,6 +126,10 @@ img{display:block;max-width:100%}
 .tiles a:hover b{text-decoration:underline;text-underline-offset:2px}
 .tiles.shots{padding-bottom:40px}
 .tiles+.sec{padding-top:72px}
+/* home: full-width grey band holding the Projects heading and tiles; tiles turn white inside it */
+.band{background:var(--tile);padding-bottom:42px}
+.band .tiles .t{background:#fff}
+.band+.cta.big{margin-top:64px}
 
 /* ---------- results statement and action row ---------- */
 .say{padding:46px 10px 18px;color:var(--acc)}
@@ -87,7 +139,7 @@ img{display:block;max-width:100%}
 .btn{display:inline-block;background:var(--acc);color:#fff;padding:8px 14px;font-size:13px}
 .btn:hover{background:#075237}
 /* bigger action row at the end of the home page */
-.cta.big{flex-wrap:wrap;margin:0 10px;padding:26px 0 80px;border-top:1px solid #000;color:var(--ink);
+.cta.big{flex-wrap:wrap;margin:0 10px;padding:26px 0 80px;color:var(--ink);
   font-size:clamp(28px,3.2vw,38px);line-height:1;letter-spacing:-.015em}
 .cta.big .btn{font-size:16px;letter-spacing:0;padding:14px 26px}
 
@@ -185,9 +237,10 @@ a.row:hover>span{color:var(--acc)}
   .bar li:has(.next){margin-right:4px}
   .head{grid-template-columns:1fr;gap:28px}
   .meta{padding-left:0}
-  /* home: welcome notes before skills on phones */
-  .head>div:has(.skills){display:contents}
-  .skills{order:2;margin-top:0}
+  /* home: about card before the resume clipboard on phones */
+  .head.home .intro{flex-direction:column;align-items:stretch;gap:28px;margin-top:28px}
+  .head.home .resume-art{order:2;margin:0 auto}
+  .head.home .meta{flex:none;max-width:none}
   .meta p{font-size:14px}
   .tiles,.roles{grid-template-columns:1fr 1fr;row-gap:22px}
   .roles p{font-size:14px}

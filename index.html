@@ -22,23 +22,33 @@
   </ul></nav>
 </header>
 <main id="main">
-<section class="head">
-  <div>
-    <h1>Raymond Huang</h1>
-    <div class="skills" aria-label="Skills">
-      <div><div class="lab">Programming</div><p>C++, Python, C, MATLAB, Verilog, Java, JavaScript</p></div>
-      <div><div class="lab">Robotics and vision</div><p>ROS/ROS 2, PX4, MAVROS, Gazebo, Isaac Sim, OpenCV, PyTorch, YOLO</p></div>
-      <div><div class="lab">Embedded and hardware</div><p>ESP32, Arduino, Raspberry Pi, FPGAs, FreeRTOS, I2C, SPI, UART</p></div>
-      <div><div class="lab">Tools and lab</div><p>Linux (Ubuntu), Git, Fusion 360, AutoCAD, logic analyzer, oscilloscope</p></div>
-    </div>
-  </div>
-  <div class="meta">
+<section class="head home">
+  <h1>Raymond Huang</h1>
+  <div class="intro">
+  <a class="resume-art" href="resume.html"><div class="ascii" role="img" aria-label="Resume: swaying ASCII render of a resume on a clipboard" data-model="assets/models/resume_clipboard.bin" data-start="-8" data-rock="26" data-tilt="8" data-exposure="2" data-floor="1"></div></a>
+  <div class="meta about-card">
     <div class="lab">Welcome</div>
     <p>I'm Raymond, a third-year electrical engineering student at Georgia Tech. I've worked on embedded systems, drone control and robot learning. I'm looking for summer 2027 internships and research positions in robotics.</p>
-    <div class="lab">Resume</div><p><a class="link" href="resume.html">View or download</a></p>
+    <div class="lab">Skills</div>
+    <dl class="kv">
+      <dt>Programming</dt><dd>C++, Python, C, MATLAB, Verilog, Java, JavaScript</dd>
+      <dt>Robotics</dt><dd>ROS/ROS 2, PX4, MAVROS, Gazebo, Isaac Sim, OpenCV, PyTorch, YOLO</dd>
+      <dt>Embedded</dt><dd>ESP32, Arduino, Raspberry Pi, FPGAs, FreeRTOS, I2C, SPI, UART</dd>
+      <dt>Tools</dt><dd>Linux, Git, Fusion 360, AutoCAD, logic analyzer, oscilloscope</dd>
+    </dl>
+    <div class="lab">Experience</div>
+    <ul class="xp">
+      <li><span>Undergraduate researcher, GT LIDAR Lab</span><span>2026 to now</span></li>
+      <li><span>Research intern, Stevens RAL</span><span>Summer 2026</span></li>
+      <li><span>Teaching assistant, BU Physics</span><span>Spring 2026</span></li>
+      <li><span>Research intern, Stevens SAS Lab</span><span>Summer 2023</span></li>
+    </ul>
+    <a class="cue" href="about.html" aria-label="About me">&gt; about</a>
+  </div>
   </div>
 </section>
 
+<div class="band">
 <h2 class="sect-title" id="projects">Projects</h2>
 <section class="tiles" aria-label="Projects">
   <a href="projects/petvision.html"><div class="t ascii" role="img" aria-label="Spinning ASCII render of the PetVision feeder and its load-cell bowl" data-model="assets/models/petvision_full.bin" data-axis="base" data-tilt="22" data-start="200"></div><b>PetVision: AI-Powered Multi-Pet Feeder</b><span>1st place, IEEE SSCS Arduino Contest</span></a>
@@ -46,16 +56,7 @@
   <a href="projects/uav-ugv-coordination.html"><div class="t ascii" role="img" aria-label="Spinning ASCII render of a quadcopter hovering over a Clearpath Jackal" data-model="assets/models/uav.bin" data-tilt="18" data-start="30"></div><b>UAV-UGV coordination using vision-based control</b><span>Poster at 2024 IEEE MIT URTC</span></a>
   <a href="projects/discovery-project.html"><div class="t ph">Photo: in progress</div><b>Discovery Project</b><span>ECE 1100 Feature</span></a>
 </section>
-
-<section class="sec">
-  <h2>Experience</h2>
-  <div class="roles">
-    <div><div class="lab">2026 to now</div><p>Undergraduate researcher</p><p class="org">Georgia Tech LIDAR Lab</p><p class="what">Extending a wearable tactile sensing platform for force-aware whole-body manipulation on a Unitree G1 humanoid.</p></div>
-    <div><div class="lab">Summer 2026</div><p>Research intern</p><p class="org">Stevens Robotics and Automation Lab</p><p class="what">Made visuomotor policies robust to camera motion with Gaussian Splatting view synthesis, as second author on an ICRA 2027 submission.</p></div>
-    <div><div class="lab">Spring 2026</div><p>Teaching assistant</p><p class="org">Boston University Physics</p><p class="what">Led weekly intro mechanics sections and co-built a wave simulation that raised correct answers from 51% to 83%.</p></div>
-    <div><div class="lab">Summer 2023</div><p>Research intern</p><p class="org">Stevens Safe Autonomous Systems Lab</p><p class="what">Built a vision and PID control pipeline in ROS that let a simulated drone follow a moving ground robot.</p></div>
-  </div>
-</section>
+</div>
 
 <div class="cta big"><span>Hiring for summer 2027?</span><a class="btn" href="contact.html">Get in touch</a></div>
 </main>
@@ -63,6 +64,24 @@
   <span>&copy; 2026 Raymond Huang, Atlanta</span>
   <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
 </footer>
+<script>
+// Top bar: Projects is the current tab once its heading scrolls near the top, until the tiles scroll away.
+// If the page is too short for the heading to get there, reaching the bottom counts.
+(()=>{
+  const home=document.querySelector('.bar a[href="index.html"]'),proj=document.querySelector('.bar a[href="#projects"]');
+  const start=document.getElementById('projects'),end=document.querySelector('#projects + .tiles');
+  const update=()=>{
+    const y=Math.min(innerHeight*.3,240),top=start.getBoundingClientRect().top,bottom=end.getBoundingClientRect().bottom;
+    const atEnd=scrollY>0&&scrollY+innerHeight>=document.documentElement.scrollHeight-2;
+    const inside=top<=y?bottom>y:atEnd;
+    if(inside){home.removeAttribute('aria-current');proj.setAttribute('aria-current','location')}
+    else{proj.removeAttribute('aria-current');home.setAttribute('aria-current','page')}
+  };
+  addEventListener('scroll',update,{passive:true});
+  addEventListener('resize',update);
+  update();
+})();
+</script>
 <script src="assets/ascii3d.js" defer></script>
 </body>
 </html>
