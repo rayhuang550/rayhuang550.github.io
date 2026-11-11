@@ -13,11 +13,9 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="bar">
-  <a href="index.html">Raymond Huang</a>
   <nav aria-label="Main"><ul>
-    <li><a href="projects.html">Projects</a></li>
+    <li><a href="index.html" aria-current="page">Home</a></li>
     <li><a href="about.html">About</a></li>
-    <li><a href="goals.html">Goals</a></li>
     <li><a href="resume.html">Resume</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul></nav>
@@ -25,53 +23,44 @@
 <main id="main">
 <section class="head">
   <div>
-    <h1>Raymond Huang<span>Electrical engineer working on robot learning, embedded systems and controls</span></h1>
-    <!-- Replace each .ph div with <img src="assets/img/..." alt="..."> -->
-    <div class="comp"><div class="ph">Photo: at the bench</div><div class="ph">Figure or screen capture</div></div>
+    <h1>Raymond Huang</h1>
+    <div class="skills" aria-label="Skills">
+      <div><div class="lab">Programming</div><p>C++, Python, C, MATLAB, Verilog, Java, JavaScript</p></div>
+      <div><div class="lab">Robotics and vision</div><p>ROS/ROS 2, PX4, MAVROS, Gazebo, Isaac Sim, OpenCV, PyTorch, YOLO</p></div>
+      <div><div class="lab">Embedded and hardware</div><p>ESP32, Arduino, Raspberry Pi, FPGAs, FreeRTOS, I2C, SPI, UART</p></div>
+      <div><div class="lab">Tools and lab</div><p>Linux (Ubuntu), Git, Fusion 360, AutoCAD, logic analyzer, oscilloscope</p></div>
+    </div>
   </div>
   <div class="meta">
     <div class="lab">Welcome</div>
-    <p><span class="todo">Welcome statement goes here: three or four sentences on who I am, what I work on, and what I'm looking for next.</span></p>
-    <div class="lab">Studying</div><p>Electrical engineering, Georgia Tech, class of 2028</p>
-    <div class="lab">Looking for</div><p>Summer 2027 internships and research programs</p>
+    <p>I'm Raymond, a third-year electrical engineering student at Georgia Tech. I've worked on embedded systems, drone control and robot learning. I'm looking for summer 2027 internships and research positions in robotics.</p>
     <div class="lab">Resume</div><p><a class="link" href="resume.html">View or download</a></p>
   </div>
 </section>
 
+<h2 class="sect-title" id="projects">Projects</h2>
 <section class="tiles" aria-label="Projects">
-  <a href="projects/petvision.html"><div class="t ph">Photo: the feeder</div><b>PetVision</b><span>Picked the right pet in 40 of 40 test photos</span></a>
-  <a href="projects/view-robust-policies.html"><div class="t cream"><div>80% to 97.5%<small>task success when the camera moves</small></div></div><b>View-robust robot policies</b><span>Submitted to ICRA 2027</span></a>
-  <a href="projects/drone-tracking.html"><div class="t deep"><svg viewBox="0 0 100 70" fill="none" stroke="#fff" stroke-width="1.6" aria-hidden="true"><rect x="6" y="8" width="88" height="54" rx="27"/><path d="M46 3l8 5-8 5M54 57l-8 5 8 5"/><circle cx="6" cy="35" r="3.5" fill="#fff"/><circle cx="94" cy="35" r="3.5" fill="#fff"/></svg></div><b>Drone tracking</b><span>A quadrotor that follows a ground robot</span></a>
-  <a href="projects/discovery-project.html"><div class="t ph">Photo: in progress</div><b>Discovery Project</b><span>ECE 1100, due at the showcase</span></a>
+  <a href="projects/petvision.html"><img class="t" src="assets/img/thumbs/petvision.jpg" alt="Rendered 3D model of the PetVision feeder"><b>PetVision</b><span>1st place, IEEE SSCS Arduino Contest</span></a>
+  <a href="projects/force-conditioned-imitation.html"><img class="t" src="assets/img/thumbs/fcil.jpg" alt="Robot arm scooping pasta with a spoon, with cameras on tripods behind it"><b>Force-conditioned imitation learning</b><span>Submitted to ICRA 2027</span></a>
+  <a href="projects/uav-ugv-coordination.html"><img class="t" src="assets/img/thumbs/uav.jpg" alt="The quadcopter used in the UAV-UGV project"><b>UAV-UGV coordination using vision-based control</b><span>Poster at 2024 IEEE MIT URTC</span></a>
+  <a href="projects/discovery-project.html"><div class="t ph">Photo: in progress</div><b>Discovery Project</b><span>ECE 1100 Feature</span></a>
 </section>
-
-<section class="say">
-  <small>View-robust robot policies, 2026</small>
-  <p>Trained on camera views it had never seen, the policy finished 97.5% of its tasks. The baseline finished 80%.</p>
-</section>
-<div class="cta"><span>Hiring for summer 2027?</span><a class="btn" href="contact.html">Get in touch</a></div>
 
 <section class="sec">
-  <h2>More</h2>
-  <p class="sub">Everything a recruiter or a lab would ask for next</p>
-  <div class="rows">
-    <details class="row" open><summary>Experience<small>4 roles since 2023</small></summary>
-      <ul>
-        <li><span>2026 to now</span>Undergraduate researcher, Georgia Tech LIDAR Lab</li>
-        <li><span>Summer 2026</span>Research intern, Stevens Robotics and Automation Lab</li>
-        <li><span>Spring 2026</span>Teaching assistant, Boston University Physics</li>
-        <li><span>Summer 2023</span>Research intern, Stevens Safe Autonomous Systems Lab</li>
-      </ul></details>
-    <a class="row" href="projects.html"><span>All projects</span><small>Open the index</small></a>
-    <a class="row" href="about.html"><span>About me</span><small>Read the longer story</small></a>
-    <a class="row" href="goals.html"><span>Career goals</span><small>See the goal and the roadmap</small></a>
-    <a class="row" href="resume.html"><span>Resume</span><small>View or download the PDF</small></a>
+  <h2>Experience</h2>
+  <div class="roles">
+    <div><div class="lab">2026 to now</div><p>Undergraduate researcher</p><p class="org">Georgia Tech LIDAR Lab</p><p class="what">Extending a wearable tactile sensing platform for force-aware whole-body manipulation on a Unitree G1 humanoid.</p></div>
+    <div><div class="lab">Summer 2026</div><p>Research intern</p><p class="org">Stevens Robotics and Automation Lab</p><p class="what">Made visuomotor policies robust to camera motion with Gaussian Splatting view synthesis, as second author on an ICRA 2027 submission.</p></div>
+    <div><div class="lab">Spring 2026</div><p>Teaching assistant</p><p class="org">Boston University Physics</p><p class="what">Led weekly intro mechanics sections and co-built a wave simulation that raised correct answers from 51% to 83%.</p></div>
+    <div><div class="lab">Summer 2023</div><p>Research intern</p><p class="org">Stevens Safe Autonomous Systems Lab</p><p class="what">Built a vision and PID control pipeline in ROS that let a simulated drone follow a moving ground robot.</p></div>
   </div>
 </section>
+
+<div class="cta big"><span>Hiring for summer 2027?</span><a class="btn" href="contact.html">Get in touch</a></div>
 </main>
 <footer class="end">
   <span>&copy; 2026 Raymond Huang, Atlanta</span>
-  <span><a href="contact.html">Email</a><a href="contact.html">LinkedIn</a><a href="contact.html">GitHub</a></span>
+  <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
 </footer>
 </body>
 </html>

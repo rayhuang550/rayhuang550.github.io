@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PetVision, Raymond Huang</title>
-<meta name="description" content="PetVision: Picked the right pet in 40 of 40 test photos.">
+<meta name="description" content="PetVision: a multi-pet feeder that recognizes which pet is at the bowl. 1st place, 2026 IEEE SSCS Arduino Contest.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&display=swap" rel="stylesheet">
@@ -13,11 +13,9 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="bar">
-  <a href="../index.html">Raymond Huang</a>
   <nav aria-label="Main"><ul>
-    <li><a href="../projects.html" aria-current="page">Projects</a></li>
+    <li><a href="../index.html">Home</a></li>
     <li><a href="../about.html">About</a></li>
-    <li><a href="../goals.html">Goals</a></li>
     <li><a href="../resume.html">Resume</a></li>
     <li><a href="../contact.html">Contact</a></li>
   </ul></nav>
@@ -25,44 +23,111 @@
 <main id="main">
 <section class="head">
   <div>
-    <h1>PetVision<span>Picked the right pet in 40 of 40 test photos</span></h1>
-    <!-- Replace each .ph div with <img src="../assets/img/..." alt="..."> -->
-    <div class="comp"><div class="ph">Photo of the build</div><div class="ph">Figure or screen capture</div></div>
+    <h1>PetVision</h1>
+    <!-- Temporary: render video until the interactive 3D model is ready -->
+    <video class="model" src="../assets/img/petvision/render.mp4" autoplay muted loop playsinline aria-label="Rendered 3D model of the PetVision feeder"></video>
   </div>
   <div class="meta">
     <div class="lab">Notes</div>
-    <p><span class="todo">Two or three sentences: what it is, what my part was, and what came of it.</span></p>
-    <div class="lab">Area</div><p>Embedded, vision</p>
-    <div class="lab">Stack</div><p>ESP32, FreeRTOS, YOLO, C++</p>
-    <div class="lab">Shown at</div><p>1st place, IEEE SSCS Arduino Contest</p>
-    <div class="lab">Timeline</div><p>2026</p>
+    <p>A pet feeder that recognizes which pet is at the bowl and gives it the right food on its own schedule. I designed and built the hardware, firmware, vision service and companion app. It won first place in the 2026 IEEE SSCS Arduino Contest.</p>
+    <div class="lab">Area</div><p>Embedded, computer vision</p>
+    <div class="lab">Stack</div><p>ESP32-S3, C++, FreeRTOS, YOLO, DINOv2, React, Firebase</p>
+    <div class="lab">Award</div><p><a class="link" href="https://arduino-contest.sscs.ieee.org/winners">1st place, IEEE SSCS Arduino Contest 2026</a></p>
+    <div class="lab">Timeline</div><p>June to August 2026</p>
+    <div class="lab">Code</div><p><a class="link" href="https://github.com/rayhuang550/PetVision">github.com/rayhuang550/PetVision</a></p>
   </div>
 </section>
 
-<section class="tiles shots" aria-label="Images">
-  <div class="t ph">Image 1</div><div class="t ph">Image 2</div><div class="t ph">Image 3</div><div class="t ph">Image 4</div>
+<section class="part"><h2>Demo</h2><div class="prose">
+  <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/YFk6PmLXg7M" title="PetVision demo video" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+</div></section>
+
+<section class="part"><h2>How it works</h2><div class="prose">
+  <p>The feeder runs on an ESP32-S3. When a pet walks up, the camera takes a photo and sends it to a vision service on a computer on the same network. The service finds the pet with YOLO, crops it, and turns the crop into a DINOv2 embedding. The ESP32 compares that embedding with the saved reference photos of each pet to decide who is at the bowl.</p>
+  <figure class="fig"><img src="../assets/img/petvision/architecture.png" alt="System diagram: the ESP32-S3 sends photos to the Vision Host (YOLO and DINOv2) and gets embeddings back; it exchanges commands, config, history and status with a Firebase backend, which syncs with the React companion app." loading="lazy"><figcaption>How the parts talk to each other</figcaption></figure>
+  <p>The firmware is C++ on FreeRTOS, with network, command and control tasks split across both cores. It reads a 2 kg load cell through a NAU7802 over I2C and an Arducam camera over SPI, and drives a 28BYJ-48 stepper that turns the dispensing drum.</p>
+  <p>Dispensing is closed loop. A 50 Hz controller pulses the stepper until the filtered load-cell reading reaches that pet's target weight. Before feeding, it checks that the bowl is empty and that the pet hasn't reached its daily limit.</p>
+  <figure class="fig"><img src="../assets/img/petvision/wiring.png" alt="Wiring schematic: load cell to NAU7802 on GPIO 8 and 9, Arducam Mega on SPI GPIO 10 to 13, ULN2003 stepper driver on GPIO 39 to 42 driving a 28BYJ-48 motor." loading="lazy"><figcaption>Wiring</figcaption></figure>
+  <p>A React web app connected through Firebase is used to add pets, set portions and schedules, and see each pet's feeding history. The dispenser and load-cell mount are 3D printed.</p>
+</div></section>
+
+<section class="part"><h2>Recognition test</h2><div class="prose">
+  <p>I gave the system three reference photos of each of two cats, then ran it on 46 other photos of them. Every photo was matched to the right cat. YOLO didn't find the cat in two of them, and one of those scored below the confidence threshold.</p>
+</div></section>
+<section class="stats" aria-label="Recognition results">
+  <div><b>46/46</b><span>test photos matched to the right cat</span></div>
+  <div><b>44/46</b><span>with the cat detected by YOLO</span></div>
+  <div><b>6</b><span>reference photos, three per cat</span></div>
 </section>
-
-<section class="part"><h2>The problem</h2><div class="prose">
-  <p class="todo">What needed solving, and for whom. </p>
-</div></section>
-<section class="part"><h2>The process</h2><div class="prose">
-  <p class="todo">How I approached it: the design choices, what I built, what failed and what I changed.</p>
-</div></section>
-<section class="part"><h2>The outcome</h2><div class="prose">
-  <p class="todo">What happened, with numbers where there are any, and what I would do next.</p>
-</div></section>
-
-<section class="sec">
+<section class="reid">
+  <div class="lab">Reference photos</div>
+  <div class="reid-grid refs">
+    <figure><img src="../assets/img/petvision/reid/ref-a1.jpg" alt="Reference photo of cat A" loading="lazy"><figcaption>Cat A</figcaption></figure>
+    <figure><img src="../assets/img/petvision/reid/ref-a2.jpg" alt="Reference photo of cat A" loading="lazy"><figcaption>Cat A</figcaption></figure>
+    <figure><img src="../assets/img/petvision/reid/ref-a3.jpg" alt="Reference photo of cat A" loading="lazy"><figcaption>Cat A</figcaption></figure>
+    <figure><img src="../assets/img/petvision/reid/ref-b1.jpg" alt="Reference photo of cat B" loading="lazy"><figcaption>Cat B</figcaption></figure>
+    <figure><img src="../assets/img/petvision/reid/ref-b2.jpg" alt="Reference photo of cat B" loading="lazy"><figcaption>Cat B</figcaption></figure>
+    <figure><img src="../assets/img/petvision/reid/ref-b3.jpg" alt="Reference photo of cat B" loading="lazy"><figcaption>Cat B</figcaption></figure>
+  </div>
   <div class="rows">
-    <a class="row" href="drone-tracking.html"><span>Next: Drone tracking</span><small>Open project</small></a>
-    <a class="row" href="../projects.html"><span>All projects</span><small>Back to the index</small></a>
+    <details class="row"><summary>All 46 test photos<small>Similarity to each cat</small></summary>
+      <div class="reid-grid">
+        <figure><img src="../assets/img/petvision/reid/q01.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.60, B 0.57</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q02.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.76, B 0.46</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q03.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.69, B 0.53</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q04.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.77, B 0.55</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q05.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.79, B 0.52</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q06.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.75, B 0.44</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q07.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.65, B 0.58</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q08.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.71, B 0.49</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q09.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.70, B 0.48</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q10.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.74, B 0.44</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q11.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.70, B 0.60</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q12.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.81, B 0.47</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q13.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.78, B 0.50</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q14.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.68, B 0.48</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q15.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.63, B 0.41</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q16.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.72, B 0.51</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q17.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.64, B 0.39</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q18.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.59, B 0.43</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q19.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.70, B 0.40</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q20.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.67, B 0.49</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q21.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.67, B 0.48</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q22.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.60, B 0.40</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q23.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.62, B 0.42</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q24.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.58, B 0.38</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q25.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.73, B 0.47</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q26.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.75, B 0.51</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q27.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.75, B 0.44</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q28.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.71, B 0.41</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q29.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.73, B 0.45</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q30.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.73, B 0.45</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q31.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.70, B 0.48</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q32.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.80, B 0.50</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q33.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.74, B 0.50</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q34.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.67, B 0.49</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q35.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.65, B 0.34</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q36.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.64, B 0.45</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q37.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A, no box, under threshold<span>A 0.52, B 0.33</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q38.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A<span>A 0.69, B 0.48</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q39.jpg" alt="Test photo of cat A, matched to cat A" loading="lazy"><figcaption>Cat A, no box<span>A 0.67, B 0.37</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q40.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.51, B 0.71</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q41.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.42, B 0.69</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q42.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.43, B 0.62</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q43.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.41, B 0.72</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q44.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.35, B 0.66</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q45.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.51, B 0.76</span></figcaption></figure>
+        <figure><img src="../assets/img/petvision/reid/q46.jpg" alt="Test photo of cat B, matched to cat B" loading="lazy"><figcaption>Cat B<span>A 0.39, B 0.64</span></figcaption></figure>
+      </div>
+    </details>
   </div>
 </section>
+
+
 </main>
 <footer class="end">
   <span>&copy; 2026 Raymond Huang, Atlanta</span>
-  <span><a href="../contact.html">Email</a><a href="../contact.html">LinkedIn</a><a href="../contact.html">GitHub</a></span>
+  <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
 </footer>
 </body>
 </html>

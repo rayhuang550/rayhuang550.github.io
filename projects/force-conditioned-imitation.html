@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Force-conditioned imitation learning, Raymond Huang</title>
+<meta name="description" content="Force-conditioned imitation learning from vision-only human demonstrations via robot replay. Second author, submitted to ICRA 2027.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <nav aria-label="Main"><ul>
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../resume.html">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul></nav>
+</header>
+<main id="main">
+<section class="head">
+  <div>
+    <h1>Force-conditioned imitation learning<span>from vision-only human demonstrations via robot replay</span></h1>
+    <!-- Temporary: setup photo until the interactive 3D model is ready -->
+    <img class="model" src="../assets/img/fcil/setup.jpg" alt="Lab setup: a Kinova Jaco2 arm holding a spoon over a pasta box and bowl, with two RealSense cameras on tripods">
+  </div>
+  <div class="meta">
+    <div class="lab">Notes</div>
+    <p>A way to teach a robot how hard to press, not just where to move, from videos of a person doing the task. I worked on the camera setup, data pipeline and novel-view synthesis, and I'm second author on the paper.</p>
+    <div class="lab">Area</div><p>Robot learning, manipulation</p>
+    <div class="lab">Stack</div><p>PyTorch, NoPoSplat, FoundationPose, Kinova Jaco2, Intel RealSense</p>
+    <div class="lab">Paper</div><p>Submitted to ICRA 2027, under review</p>
+    <div class="lab">Authors</div><p>Sakib Chowdhury, Raymond Huang, Vanessa Chen, Yi Guo</p>
+    <div class="lab">Lab</div><p>Stevens Robotics and Automation Lab, May to August 2026</p>
+    <div class="lab">Links</div><p><a class="link" href="https://sakibchowdhury131.github.io/projects/force-conditioned-imitation-learning/">Project page</a>, <a class="link" href="https://github.com/sakibchowdhury131/force-aware-imitation-learning">Code</a></p>
+  </div>
+</section>
+
+<section class="part"><h2>Demo</h2><div class="prose">
+  <div class="video"><video controls preload="none" poster="../assets/img/fcil/force-conditioned-visuomotor-policy-poster.jpg" src="../assets/img/fcil/force-conditioned-visuomotor-policy.mp4" aria-label="Narrated walkthrough of the force-conditioned policy"></video></div>
+  <p class="cap">Narrated walkthrough of the full pipeline. Video from the project page.</p>
+</div></section>
+
+<section class="part"><h2>How it works</h2><div class="prose">
+  <p>Most imitation learning copies where the robot's hand should go, but tasks like scooping also depend on how hard to push. Too little force and the spoon comes up empty; too much and it can spill food or, in assistive feeding, be unsafe for the person being fed. Getting that force usually takes a force sensor on the robot's wrist or a sensor on the person doing the demonstration.</p>
+  <p>Here, a person does the task with an ordinary spoon in front of a camera, and FoundationPose tracks the spoon's 6D pose. The robot then replays that path under position control. Its joints have built-in torque sensors, so subtracting what its own dynamics model predicts leaves the force from contact. That gives a force label for every moment of the demonstration without adding any sensors.</p>
+  <figure class="fig"><img src="../assets/img/fcil/system-diagram.png" alt="System overview: on the left, a human demonstration tracked with FoundationPose; on the right, the robot replays the trajectory, senses the external wrench, and NoPoSplat renders novel views, all feeding the policy." loading="lazy"><figcaption>System overview. Figure from the paper.</figcaption></figure>
+  <p>A diffusion policy is trained on camera images from the replays to predict both a reference pose and a reference force. At run time, the predicted force goes to an admittance controller as a setpoint that changes over the course of the task.</p>
+</div></section>
+
+<section class="part"><h2>My part</h2><div class="prose">
+  <p>The policy runs on a single camera, so it has to cope with a camera that isn't exactly where it was during training. I added novel-view synthesis: from the two fixed cameras' images of each replay, NoPoSplat, a feed-forward 3D Gaussian Splatting model, renders the scene from new viewpoints placed between the two real cameras. Actions are defined in the robot's frame, so each render reuses the real frame's labels and the extra views cost no extra data collection.</p>
+  <figure class="fig"><video src="../assets/img/fcil/novel-views.mp4" poster="../assets/img/fcil/novel-views-poster.jpg" autoplay muted loop playsinline aria-label="Novel views of a replay episode rendered by NoPoSplat"></video><figcaption>Novel views rendered from one replay episode</figcaption></figure>
+  <p>I compared MASt3R with Gaussian Splatting, Splatt3R, and Splatt3R with gsplat before choosing NoPoSplat, which gave the cleanest renders. Cropping its output to the largest area without holes removed the remaining edge artifacts.</p>
+  <p>I also calibrated and hardware-synchronized the event and RGB-D cameras, automated the data collection pipeline (from about 8 hours of processing per task to about 30 minutes), trained a U-Net on about 500 hand-labeled images to mask out the robot arm, and built a Gaussian Splatting simulation for testing policies before running them on the robot.</p>
+</div></section>
+
+<section class="part"><h2>Results</h2><div class="prose">
+  <p>Each setup was tested over 40 trials on a pasta scooping task. A trial counts if the robot scoops pasta and moves it into the bowl without spilling. Every policy was trained on 30 demonstrations, about five minutes in total.</p>
+  <table class="ix">
+    <thead><tr><th>Data</th><th>Force</th><th>Policy</th><th>Success</th></tr></thead>
+    <tbody>
+      <tr><td>Joystick teleoperation</td><td>Yes</td><td>Diffusion</td><td>0%</td></tr>
+      <tr><td>Tool-as-Interface baseline</td><td>No</td><td>Diffusion</td><td>80%</td></tr>
+      <tr><td>Human demo and replay</td><td>No</td><td>Diffusion</td><td>82.5%</td></tr>
+      <tr><td>Human demo and replay</td><td>Yes</td><td>ACT</td><td>92.5%</td></tr>
+      <tr><td>Human demo and replay</td><td>Yes</td><td>Flow matching</td><td>92.5%</td></tr>
+      <tr><td>Human demo and replay (ours)</td><td>Yes</td><td>Diffusion</td><td>97.5%</td></tr>
+    </tbody>
+  </table>
+  <p>Force also changed how the robot pressed. Without it, the policy under-committed to contact. With it, the average force came out closer to what the demonstrations used, and both stayed well under the demonstrations' highest peak.</p>
+  <table class="ix">
+    <thead><tr><th>Contact force</th><th>Demos</th><th>Without force</th><th>With force</th></tr></thead>
+    <tbody>
+      <tr><td>Mean</td><td>4.19 N</td><td>3.68 N</td><td>4.06 N</td></tr>
+      <tr><td>Average peak</td><td>9.32 N</td><td>6.57 N</td><td>7.19 N</td></tr>
+      <tr><td>Highest peak</td><td>14.91 N</td><td>8.11 N</td><td>7.69 N</td></tr>
+    </tbody>
+  </table>
+</div></section>
+<section class="stats" aria-label="Key results">
+  <div><b>97.5%</b><span>success with force</span></div>
+  <div><b>82.5%</b><span>same policy without force</span></div>
+  <div><b>5 min</b><span>of human demonstration</span></div>
+</section>
+<section class="vids" aria-label="Deployment videos">
+  <figure><video controls preload="none" poster="../assets/img/fcil/force-conditioned-poster.jpg" src="../assets/img/fcil/force-conditioned.mp4" aria-label="Deployment with force conditioning"></video><figcaption>With force (ours)</figcaption></figure>
+  <figure><video controls preload="none" poster="../assets/img/fcil/without-force-poster.jpg" src="../assets/img/fcil/without-force.mp4" aria-label="Deployment without force, pose only"></video><figcaption>Without force</figcaption></figure>
+</section>
+
+</main>
+<footer class="end">
+  <span>&copy; 2026 Raymond Huang, Atlanta</span>
+  <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
+</footer>
+</body>
+</html>

@@ -13,56 +13,83 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="bar">
-  <a href="index.html">Raymond Huang</a>
   <nav aria-label="Main"><ul>
-    <li><a href="projects.html">Projects</a></li>
+    <li><a href="index.html">Home</a></li>
     <li><a href="about.html" aria-current="page">About</a></li>
-    <li><a href="goals.html">Goals</a></li>
     <li><a href="resume.html">Resume</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul></nav>
 </header>
 <main id="main">
-<section class="head">
-  <div>
-    <h1>About me<span class="todo">One line that sums up the story</span></h1>
-    <!-- Replace with <img class="portrait" src="assets/img/portrait.jpg" alt="Raymond Huang"> -->
-    <div class="ph portrait">Portrait photo</div>
-  </div>
+<section class="head plain">
+  <h1>About me</h1>
   <div class="meta">
     <div class="lab">Studying</div><p>Electrical engineering, Georgia Tech, class of 2028</p>
     <div class="lab">Based in</div><p>Atlanta, Georgia</p>
     <div class="lab">Working on</div><p>Robot learning, embedded systems, controls, computer vision</p>
-    <div class="lab">Outside the lab</div><p><span class="todo">Interests and hobbies</span></p>
+    <div class="lab">Outside the lab</div><p>Climbing, drawing, hiking</p>
   </div>
 </section>
 
 <section class="part"><h2>The story</h2><div class="prose">
-  <p class="todo">Opening: where the interest in robots started. Draw on the elevator pitch.</p>
-  <p class="todo">Middle: what I have done about it so far, and what I learned doing it.</p>
-  <p class="todo">Close: what I want to work on next, and what kind of team I am looking for.</p>
+  <p>My first research project was in summer 2023 at Stevens, getting a simulated drone to follow a moving ground robot. It used object detection, ROS and PID control together, and most of what I have done since has been in robotics.</p>
+  <p>I started electrical engineering at Boston University and transferred to Georgia Tech in fall 2026. In between, I spent summer 2026 at Stevens again working on imitation learning, and built PetVision, a pet feeder that won an IEEE Arduino contest. Now I work on tactile sensing for a humanoid robot in the LIDAR Lab.</p>
+</div></section>
+
+<section class="part"><h2>Career goals</h2><div class="prose">
+  <div class="lab">Long-term goal</div>
+  <p>Work as a robotics engineer on robots that learn from data and run on real hardware, such as manipulators and humanoids. I like that it needs embedded systems, controls and machine learning all at once.</p>
+  <div class="lab">Now to summer 2027</div>
+  <p>Keep doing research in the LIDAR Lab and take the controls, embedded systems and robotics courses at Georgia Tech. Get a robotics internship or research position for summer 2027.</p>
+  <div class="lab">2027 to 2028</div>
+  <p>Lead a research project of my own from start to finish and aim to publish it. Finish my B.S. in electrical engineering in 2028.</p>
+  <div class="lab">After graduation</div>
+  <p>Decide between a robotics engineering job and graduate school in robotics, based on what I learn from my internship and research.</p>
 </div></section>
 
 <section class="part"><h2>Experience</h2><div class="prose">
   <div class="rows">
-    <details class="row"><summary>Georgia Tech LIDAR Lab<small>2026 to now</small></summary><p>Undergraduate researcher. <span class="todo">What I do there and what has come of it.</span></p></details>
-    <details class="row"><summary>Stevens Robotics and Automation Lab<small>Summer 2026</small></summary><p>Research intern. <span class="todo">What I did there and what came of it.</span></p></details>
-    <details class="row"><summary>Boston University Physics<small>Spring 2026</small></summary><p>Teaching assistant. <span class="todo">What I did there and what came of it.</span></p></details>
-    <details class="row"><summary>Stevens Safe Autonomous Systems Lab<small>Summer 2023</small></summary><p>Research intern. <span class="todo">What I did there and what came of it.</span></p></details>
+    <details class="row"><summary>Georgia Tech LIDAR Lab<small>2026 to now</small></summary>
+      <p class="role">Undergraduate researcher</p>
+      <ul class="pts">
+        <li>Contribute to humanoid whole-body manipulation research by building on the lab's tactile sensing platform, which pairs wearable tactile sensors with a learned, force-aware planner to control a Unitree G1 humanoid.</li>
+      </ul></details>
+    <details class="row"><summary>Stevens Robotics and Automation Lab<small>Summer 2026</small></summary>
+      <p class="role">Research intern, second author on a paper submitted to ICRA 2027</p>
+      <ul class="pts">
+        <li>Made visuomotor policies robust to camera motion by expanding training data with novel-view synthesis from a feed-forward 3D Gaussian Splatting model. The full method reached 97.5% success vs. an 80% baseline over 40 trials.</li>
+        <li>Trained a custom U-Net segmentation model in PyTorch on about 500 hand-labeled images to mask out the robot arm during deployment, helping close the embodiment gap between human demonstrations and the robot.</li>
+        <li>Calibrated and hardware-synchronized event and RGB-D cameras, and automated the data collection pipeline with Python scripts, cutting processing time per task from about 8 hours to about 30 minutes.</li>
+        <li>Built a Gaussian Splatting simulation environment to test visuomotor policies before running them on the robot.</li>
+      </ul></details>
+    <details class="row"><summary>Boston University Physics<small>Spring 2026</small></summary>
+      <p class="role">Teaching assistant</p>
+      <ul class="pts">
+        <li>Led 3 weekly problem-solving sections for about 75 of the 500 students in an introductory mechanics course.</li>
+        <li>Co-developed an animated traveling-wave simulation with other TAs to teach wave concepts. Across 208 pre/post survey responses, correct-answer rates rose from 51% to 83%.</li>
+      </ul></details>
+    <details class="row"><summary>Stevens Safe Autonomous Systems Lab<small>Summer 2023</small></summary>
+      <p class="role">Research intern, poster at the 2024 IEEE MIT URTC</p>
+      <ul class="pts">
+        <li>Built a Gazebo simulation testbed with PX4 software-in-the-loop, a camera-equipped drone and a moving ground robot.</li>
+        <li>Fine-tuned YOLO to detect the robot in the drone's video feed, and used camera geometry to estimate its 3D position.</li>
+        <li>Developed a C++ ROS pipeline combining detection, position estimation and control, with separate PID loops for following distance, altitude and yaw sending setpoints to PX4 over MAVROS.</li>
+        <li>Analyzed tracking error from simulation logs in Python to tune controller gains across different ground-robot speeds.</li>
+      </ul></details>
   </div>
 </div></section>
 
 <section class="part"><h2>Skills</h2><div class="prose">
-  <div class="lab">Languages</div><p class="todo">List</p>
-  <div class="lab">Hardware and embedded</div><p class="todo">List</p>
-  <div class="lab">Robotics and machine learning</div><p class="todo">List</p>
+  <div class="lab">Programming</div><p>C++, Python, C, MATLAB, Verilog, Java, JavaScript</p>
+  <div class="lab">Robotics and vision</div><p>ROS/ROS 2, PX4, MAVROS, Gazebo, Isaac Sim, OpenCV, PyTorch, YOLO</p>
+  <div class="lab">Embedded and hardware</div><p>ESP32, Arduino, Raspberry Pi, FPGAs, FreeRTOS, I2C, SPI, UART</p>
+  <div class="lab">Tools and lab</div><p>Linux (Ubuntu), Git, GitHub, Fusion 360, AutoCAD, logic analyzer, oscilloscope</p>
 </div></section>
-
-<div class="cta"><span>Want the short version?</span><a class="btn" href="resume.html">Open the resume</a></div>
 </main>
+
 <footer class="end">
   <span>&copy; 2026 Raymond Huang, Atlanta</span>
-  <span><a href="contact.html">Email</a><a href="contact.html">LinkedIn</a><a href="contact.html">GitHub</a></span>
+  <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
 </footer>
 </body>
 </html>

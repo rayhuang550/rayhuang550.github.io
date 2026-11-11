@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAV-UGV coordination using vision-based control, Raymond Huang</title>
+<meta name="description" content="UAV-UGV coordination using vision-based control: a drone that detects and follows a ground robot. Poster at the 2024 IEEE MIT URTC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <nav aria-label="Main"><ul>
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="../about.html">About</a></li>
+    <li><a href="../resume.html">Resume</a></li>
+    <li><a href="../contact.html">Contact</a></li>
+  </ul></nav>
+</header>
+<main id="main">
+<section class="head">
+  <div>
+    <h1>UAV-UGV coordination using vision-based control</h1>
+    <!-- Temporary: vehicle photo until the interactive 3D model is ready -->
+    <img class="model" src="../assets/img/uav/vehicles.jpg" alt="The Clearpath Jackal ground robot (UGV) next to the VOXL drone (UAV) in a netted flight area">
+  </div>
+  <div class="meta">
+    <div class="lab">Notes</div>
+    <p>A drone that finds a ground robot in its own camera feed and follows it. I built the detection and control pipeline and tested it in simulation as a high school research intern, then presented it as a poster at the 2024 IEEE MIT URTC.</p>
+    <div class="lab">Area</div><p>Controls, computer vision</p>
+    <div class="lab">Stack</div><p>ROS, Gazebo, PX4 SITL, MAVROS, YOLOv5, C++</p>
+    <div class="lab">Hardware</div><p>VOXL drone, Clearpath Robotics Jackal</p>
+    <div class="lab">Shown at</div><p>Poster, 2024 IEEE MIT Undergraduate Research Technology Conference</p>
+    <div class="lab">Lab</div><p>Stevens Safe Autonomous Systems Lab, June to August 2023, advised by Hamidreza Jafarnejadsani</p>
+  </div>
+</section>
+
+<section class="part"><h2>How it works</h2><div class="prose">
+  <p>The goal was a drone that keeps a moving ground robot in view using only its onboard camera, so the two can work together outdoors. Longer term, the pair could photograph a site from the ground and from the air to build 3D scans of places people can't safely reach, like wildfire or nuclear waste sites.</p>
+  <p>The drone streams its camera feed to an offboard computer running ROS. There, a YOLOv5 model I fine-tuned to recognize the robot finds it in each frame, and camera geometry turns the bounding box into an estimate of the robot's position relative to the drone.</p>
+  <figure class="fig"><img src="../assets/img/uav/flowchart.png" alt="Flowchart: initiate drone takeoff, receive camera feed, run YOLOv5 to get the object location, UAV control, send a command over MAVLink; repeat until Esc is pressed, then land." loading="lazy"><figcaption>Control loop. Pressing Esc stops tracking and lands the drone.</figcaption></figure>
+  <p>A C++ ROS node compares that position with where the robot should be in the frame and turns the error into three commands: pitch from the distance, yaw from the angle, and throttle from the height difference. PID controllers smooth each one so the robot stays centered in the camera view, and the setpoints go to the flight controller over MAVROS.</p>
+  <figure class="fig"><img src="../assets/img/uav/control.png" alt="UAV control block diagram: the object location is subtracted from the desired location; the error sets pitch from relative distance, yaw from relative angle and throttle from height difference, each divided by a scale factor, and the command is sent through MAVLink." loading="lazy"><figcaption>How the position error becomes pitch, yaw and throttle commands</figcaption></figure>
+</div></section>
+
+<section class="part"><h2>Testing</h2><div class="prose">
+  <p>I built a Gazebo test environment with PX4 software-in-the-loop, so the real flight controller code ran against a simulated, camera-equipped drone and a moving ground vehicle. Most of the PID tuning happened here, until the drone could follow smoothly at a set distance.</p>
+  <figure class="fig"><img src="../assets/img/uav/simulation.png" alt="Two Gazebo screenshots: the drone's camera view detects the vehicle, and the drone moves to keep it centered as the vehicle drives." loading="lazy"><figcaption>The drone's detection window (right of each frame) keeping the vehicle in view as it moves</figcaption></figure>
+  <p>The system was only tested in simulation. Flying it on the real drone and Jackal was the next step.</p>
+</div></section>
+
+<section class="reid">
+  <div class="rows">
+    <details class="row"><summary>Poster<small>2024 IEEE MIT URTC</small></summary>
+      <figure class="fig poster"><img src="../assets/img/uav/poster.png" alt="Conference poster: UAV-UGV Coordination Using Vision-Based Control, by Raymond Huang and Hamidreza Jafarnejadsani" loading="lazy"></figure>
+    </details>
+  </div>
+</section>
+</main>
+<footer class="end">
+  <span>&copy; 2026 Raymond Huang, Atlanta</span>
+  <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
+</footer>
+</body>
+</html>
