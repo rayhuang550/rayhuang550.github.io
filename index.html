@@ -7,17 +7,18 @@
 <meta name="description" content="Raymond Huang, electrical engineering student at Georgia Tech working on robot learning, embedded systems and controls.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&family=JetBrains+Mono:wght@400;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="bar">
   <nav aria-label="Main"><ul>
-    <li><a href="index.html" aria-current="page">Home</a></li>
-    <li><a href="about.html">About</a></li>
-    <li><a href="resume.html">Resume</a></li>
-    <li><a href="contact.html">Contact</a></li>
+    <li><a href="index.html" aria-current="page"><i aria-hidden="true">01</i>Home</a></li>
+    <li><a href="#projects"><i aria-hidden="true">02</i>Projects</a></li>
+    <li><a href="about.html"><i aria-hidden="true">03</i>About</a></li>
+    <li><a href="resume.html"><i aria-hidden="true">04</i>Resume</a></li>
+    <li><a href="contact.html"><i aria-hidden="true">05</i>Contact</a></li>
   </ul></nav>
 </header>
 <main id="main">
@@ -40,9 +41,9 @@
 
 <h2 class="sect-title" id="projects">Projects</h2>
 <section class="tiles" aria-label="Projects">
-  <a href="projects/petvision.html"><img class="t" src="assets/img/thumbs/petvision.jpg" alt="Rendered 3D model of the PetVision feeder"><b>PetVision</b><span>1st place, IEEE SSCS Arduino Contest</span></a>
-  <a href="projects/force-conditioned-imitation.html"><img class="t" src="assets/img/thumbs/fcil.jpg" alt="Robot arm scooping pasta with a spoon, with cameras on tripods behind it"><b>Force-conditioned imitation learning</b><span>Submitted to ICRA 2027</span></a>
-  <a href="projects/uav-ugv-coordination.html"><img class="t" src="assets/img/thumbs/uav.jpg" alt="The quadcopter used in the UAV-UGV project"><b>UAV-UGV coordination using vision-based control</b><span>Poster at 2024 IEEE MIT URTC</span></a>
+  <a href="projects/petvision.html"><div class="t ascii" role="img" aria-label="Spinning ASCII render of the PetVision feeder and its load-cell bowl" data-model="assets/models/petvision_full.bin" data-axis="base" data-tilt="22" data-start="200"></div><b>PetVision: AI-Powered Multi-Pet Feeder</b><span>1st place, IEEE SSCS Arduino Contest</span></a>
+  <a href="projects/force-conditioned-imitation.html"><div class="t ascii" role="img" aria-label="Spinning ASCII render of the Kinova robot arm" data-model="assets/models/fcil.bin"></div><b>Force-conditioned imitation learning</b><span>Submitted to ICRA 2027</span></a>
+  <a href="projects/uav-ugv-coordination.html"><div class="t ascii" role="img" aria-label="Spinning ASCII render of a quadcopter hovering over a Clearpath Jackal" data-model="assets/models/uav.bin" data-tilt="18" data-start="30"></div><b>UAV-UGV coordination using vision-based control</b><span>Poster at 2024 IEEE MIT URTC</span></a>
   <a href="projects/discovery-project.html"><div class="t ph">Photo: in progress</div><b>Discovery Project</b><span>ECE 1100 Feature</span></a>
 </section>
 
@@ -62,5 +63,6 @@
   <span>&copy; 2026 Raymond Huang, Atlanta</span>
   <span><a href="mailto:raymond.tingrui.huang@gmail.com">Email</a><a href="https://github.com/rayhuang550">GitHub</a></span>
 </footer>
+<script src="assets/ascii3d.js" defer></script>
 </body>
 </html>
