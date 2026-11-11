@@ -1,0 +1,10 @@
+# Private working files — keep out of the public site/repo
+.claude/
+_notes/
+_archive/
+design-language.md
+
+# OS clutter
+Thumbs.db
+desktop.ini
+.DS_Store

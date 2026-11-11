@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects, Raymond Huang</title>
+<meta name="description" content="Research and engineering projects by Raymond Huang.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <a href="index.html">Raymond Huang</a>
+  <nav aria-label="Main"><ul>
+    <li><a href="projects.html" aria-current="page">Projects</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="goals.html">Goals</a></li>
+    <li><a href="resume.html">Resume</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul></nav>
+</header>
+<main id="main">
+<section class="head plain">
+  <h1>Projects<span>Research and builds, newest first</span></h1>
+  <div class="meta">
+    <div class="lab">Notes</div>
+    <p><span class="todo">One or two sentences on what ties these projects together.</span></p>
+  </div>
+</section>
+
+<section class="tiles" aria-label="Featured projects">
+  <a href="projects/petvision.html"><div class="t ph">Photo: the feeder</div><b>PetVision</b><span>Picked the right pet in 40 of 40 test photos</span></a>
+  <a href="projects/view-robust-policies.html"><div class="t cream"><div>80% to 97.5%<small>task success when the camera moves</small></div></div><b>View-robust robot policies</b><span>Submitted to ICRA 2027</span></a>
+  <a href="projects/drone-tracking.html"><div class="t deep"><svg viewBox="0 0 100 70" fill="none" stroke="#fff" stroke-width="1.6" aria-hidden="true"><rect x="6" y="8" width="88" height="54" rx="27"/><path d="M46 3l8 5-8 5M54 57l-8 5 8 5"/><circle cx="6" cy="35" r="3.5" fill="#fff"/><circle cx="94" cy="35" r="3.5" fill="#fff"/></svg></div><b>Drone tracking</b><span>A quadrotor that follows a ground robot</span></a>
+  <a href="projects/discovery-project.html"><div class="t ph">Photo: in progress</div><b>Discovery Project</b><span>ECE 1100, due at the showcase</span></a>
+</section>
+
+<section class="sec">
+  <!-- Add a row here for every new project. -->
+  <table class="ix">
+    <tr><th>Project</th><th>Area</th><th>Stack</th><th>Shown at</th></tr>
+    <tr class="soon"><td><a href="projects/discovery-project.html">Discovery Project (in progress)</a></td><td><span class="todo">To be decided</span></td><td><span class="todo">To be decided</span></td><td>Discovery Project Showcase</td></tr>
+    <tr><td><a href="projects/view-robust-policies.html">View-robust robot policies</a></td><td>Robot learning</td><td>PyTorch, Gaussian splatting</td><td>ICRA 2027 submission</td></tr>
+    <tr><td><a href="projects/petvision.html">PetVision</a></td><td>Embedded, vision</td><td>ESP32, FreeRTOS, YOLO, C++</td><td>IEEE SSCS Arduino Contest</td></tr>
+    <tr><td><a href="projects/drone-tracking.html">Drone tracking</a></td><td>Controls, vision</td><td>ROS, PX4, Gazebo</td><td>IEEE MIT URTC</td></tr>
+  </table>
+</section>
+</main>
+<footer class="end">
+  <span>&copy; 2026 Raymond Huang, Atlanta</span>
+  <span><a href="contact.html">Email</a><a href="contact.html">LinkedIn</a><a href="contact.html">GitHub</a></span>
+</footer>
+</body>
+</html>
